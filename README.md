@@ -31,7 +31,7 @@ Traditional UOFiddler on Linux via Wine or Mono is prone to graphical glitches, 
 
 ---
 
-## 📑 Comprehensive Overview of all 21 Tabs
+## 📑 Comprehensive Overview of all 21 Tabs (20, plus 1 experimental)
 
 Tabs are grouped in three categories at the top of the window: **Arte** (art), **Dados** (data) and **Mundo** (world).
 
@@ -54,7 +54,7 @@ Tabs are grouped in three categories at the top of the window: **Arte** (art), *
 | **🗣️ Speech** | Speech keywords and command triggers (`speech.mul`). |
 | **🎬 AnimData** | Frame animation timing and delay tables (`animdata.mul`) with live static art preview. |
 | **🎮 GameData** | Enhanced Client 3D configuration inspector (`GameData.uop`). Decodes all 79 configuration tables with **Structured Grid** and **Raw Monospace** views, row filtering, and batch CSV export. |
-| **🧍 Paperdoll** | Paperdoll builder: the body animation and the paperdoll gump side by side, backpack-style item slots and hues (`Equipconv.def`, `gump.def`). |
+| **🧍 Paperdoll** *(experimental)* | Paperdoll builder: the body animation and the paperdoll gump side by side, backpack-style item slots and hues (`Equipconv.def`, `gump.def`), any item on any layer, and the character on a mount. Still being finished, so it is **hidden unless you start the program with `--experimental`** (see [Experimental features](#-experimental-features)). |
 | **🧩 GumpStudio** | Visual gump designer: backgrounds, images, items, text, HTML/cliloc, buttons, checkboxes, radios, text entries and alpha regions, drawn with the client's art and **UO fonts** (`unifont*.mul`, `fonts.mul`). Saves and opens JSON and exports to **RunUO (C#)**, **Sphere** and **POL**. Visual pickers for images, items, buttons, checkboxes and radios, a resizepic browser (with a manual valid/invalid list), HTML text, repeat loops, favorites and groups. |
 | **📡 Comunicação** | Static reference of the client's packets (server to client and client to server) and gump layout commands, with search and filters. |
 | **📁 Arquivos** | Browser for every client file: text/def files as tables, IFF localization, UOP browser with entries and preview, hex view, `Multimap.rle` and `facet0N.mul` as images, and the **UOP ↔ MUL converter** (art, gumps, maps). |
@@ -74,6 +74,21 @@ Open the **Map** tab and press **Edit map** (or F11). The editor takes the place
 **Saving**: changes stay pending until you press **Save**, which writes them into the facet's files in the client folder: land into `mapN.mul` / `mapNLegacyMUL.uop` (patched in place), statics into `staidxN.mul` / `staticsN.mul` (rewritten). A `.bak` copy of each file is made before its first save. **Save as…** writes a full copy of the facet's files into another folder instead, and pending changes can be exported to and imported from JSON. The editor edits the base map: `mapdif`/`stadif` patches, if the facet has them, still apply on top in the client.
 
 > Keep a copy of your client folder before saving, and close the game client while you save.
+
+---
+
+## 🧪 Experimental features
+
+Tabs that are still being finished stay hidden, so the published tool shows only what is ready. Start the program with `--experimental` to show them:
+
+```bash
+uo_gui --experimental                  # Windows: uo_gui.exe --experimental
+./UOFiddler-<version>-x86_64.AppImage --experimental
+cargo run --release -p uo_gui -- --experimental
+```
+
+- Today that is the **Paperdoll** tab. It appears marked *(experimental)*, and the tab counters (20 tabs, 21 with the flag) include it only with the flag.
+- The flag is kept when the [auto updater](#updates) restarts the program. For scripts and automated screenshots, `UOFIDDLER_EXPERIMENTAL=1` does the same. All environment variables are listed in [`docs/en/environment-variables.md`](docs/en/environment-variables.md).
 
 ---
 
@@ -173,6 +188,7 @@ UOFiddler-Rust/
 ## 📚 Documentation
 
 - [`docs/en/formats`](docs/en/formats/README.md): one document per family of client files (MUL/IDX, maps, tables, animations, UOP containers, `.def`, localization…), covering every file of a 7.x client folder.
+- [`docs/en/environment-variables.md`](docs/en/environment-variables.md): every environment variable and command-line argument (`--experimental`, `UOFIDDLER_UO_DIR`, the screenshot variables, the updater ones). The Portuguese original is [`docs/variaveis-de-ambiente.md`](docs/variaveis-de-ambiente.md).
 - [`docs/en/protocol`](docs/en/protocol/README.md): packets, gump layout commands and flows (login, gumps, house customization, boats). The Portuguese originals are in [`docs/formats`](docs/formats/README.md) and [`docs/protocol`](docs/protocol/README.md).
 
 ---

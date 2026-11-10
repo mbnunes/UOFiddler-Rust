@@ -22,6 +22,7 @@ tab.packets = 📡 Protocol
 tab.files = 📁 Files
 tab.paperdoll = 👤 Paperdoll
 tab.gumpstudio = 🛠 GumpStudio
+tab.experimental = experimental
 
 category.art = 🎨 Art & Graphics
 category.data = 📋 Data & Tables

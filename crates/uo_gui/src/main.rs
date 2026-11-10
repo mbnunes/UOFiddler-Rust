@@ -101,7 +101,29 @@ pub enum UoTab {
     GumpStudio,
 }
 
+/// Set by `--experimental` (or UOFIDDLER_EXPERIMENTAL=1, for automated screenshots): shows the tabs that
+/// are still being finished.
+static EXPERIMENTAL: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+fn experimental() -> bool {
+    EXPERIMENTAL.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 impl UoTab {
+    /// A tab that is not finished yet: hidden unless the program is started with `--experimental`.
+    pub fn is_experimental(&self) -> bool {
+        matches!(self, UoTab::Paperdoll)
+    }
+
+    /// The tabs to show: all of them with `--experimental`, the finished ones otherwise.
+    pub fn visible() -> Vec<UoTab> {
+        Self::visible_with(experimental())
+    }
+
+    fn visible_with(experimental: bool) -> Vec<UoTab> {
+        Self::ALL.iter().copied().filter(|t| experimental || !t.is_experimental()).collect()
+    }
+
     pub const ALL: [UoTab; 21] = [
         UoTab::Items,
         UoTab::LandTiles,
@@ -147,7 +169,7 @@ impl UoTab {
             UoTab::GameData => t!("tab.gamedata"),
             UoTab::Packets => t!("tab.packets"),
             UoTab::Files => t!("tab.files"),
-            UoTab::Paperdoll => t!("tab.paperdoll"),
+            UoTab::Paperdoll => format!("{} ({})", t!("tab.paperdoll"), t!("tab.experimental")),
             UoTab::GumpStudio => t!("tab.gumpstudio"),
         }
     }
@@ -722,7 +744,7 @@ impl Default for UoFiddlerApp {
             active_tab: std::env::var("UOFIDDLER_START_TAB")
                 .ok()
                 .and_then(|n| {
-                    UoTab::ALL.iter().copied().find(|t| {
+                    UoTab::visible().into_iter().find(|t| {
                         format!("{:?}", t).eq_ignore_ascii_case(n.trim())
                     })
                 })
@@ -2279,26 +2301,26 @@ impl eframe::App for UoFiddlerApp {
                     let is_world = self.active_category == Some(TabCategory::World);
                     let is_all = self.active_category.is_none();
 
-                    if ui.selectable_label(is_art, &t!("pill.art", n = UoTab::ALL.iter().filter(|t| t.category() == TabCategory::Art).count())).clicked() {
+                    if ui.selectable_label(is_art, &t!("pill.art", n = UoTab::visible().iter().filter(|t| t.category() == TabCategory::Art).count())).clicked() {
                         self.active_category = Some(TabCategory::Art);
                         if self.active_tab.category() != TabCategory::Art {
                             self.active_tab = UoTab::Items;
                             self.load_item_preview(ctx);
                         }
                     }
-                    if ui.selectable_label(is_data, &t!("pill.data", n = UoTab::ALL.iter().filter(|t| t.category() == TabCategory::Data).count())).clicked() {
+                    if ui.selectable_label(is_data, &t!("pill.data", n = UoTab::visible().iter().filter(|t| t.category() == TabCategory::Data).count())).clicked() {
                         self.active_category = Some(TabCategory::Data);
                         if self.active_tab.category() != TabCategory::Data {
                             self.active_tab = UoTab::Hues;
                         }
                     }
-                    if ui.selectable_label(is_world, &t!("pill.world", n = UoTab::ALL.iter().filter(|t| t.category() == TabCategory::World).count())).clicked() {
+                    if ui.selectable_label(is_world, &t!("pill.world", n = UoTab::visible().iter().filter(|t| t.category() == TabCategory::World).count())).clicked() {
                         self.active_category = Some(TabCategory::World);
                         if self.active_tab.category() != TabCategory::World {
                             self.active_tab = UoTab::Map;
                         }
                     }
-                    if ui.selectable_label(is_all, &t!("pill.all", n = UoTab::ALL.len())).clicked() {
+                    if ui.selectable_label(is_all, &t!("pill.all", n = UoTab::visible().len())).clicked() {
                         self.active_category = None;
                     }
 
@@ -2341,7 +2363,7 @@ impl eframe::App for UoFiddlerApp {
                             .selected_text(self.active_tab.name())
                             .width(130.0)
                             .show_ui(ui, |ui| {
-                                for tab in UoTab::ALL {
+                                for tab in UoTab::visible() {
                                     if ui.selectable_value(&mut self.active_tab, tab, tab.name()).clicked() {
                                         self.active_category = Some(tab.category());
                                         match tab {
@@ -2370,12 +2392,11 @@ impl eframe::App for UoFiddlerApp {
                 egui::ScrollArea::horizontal().show(ui, |ui| {
                     ui.horizontal(|ui| {
                         let visible_tabs: Vec<UoTab> = match self.active_category {
-                            Some(cat) => UoTab::ALL
-                                .iter()
-                                .copied()
+                            Some(cat) => UoTab::visible()
+                                .into_iter()
                                 .filter(|t| t.category() == cat)
                                 .collect(),
-                            None => UoTab::ALL.to_vec(),
+                            None => UoTab::visible(),
                         };
 
                         for tab in visible_tabs {
@@ -6131,6 +6152,11 @@ fn main() -> eframe::Result<()> {
     if let Some(code) = updater::cli(&args) {
         std::process::exit(code);
     }
+    // `--experimental`: show the tabs that are still being finished (the updater passes the arguments on
+    // when it restarts, so the flag survives an update)
+    if args.iter().any(|a| a == "--experimental") || std::env::var_os("UOFIDDLER_EXPERIMENTAL").is_some() {
+        EXPERIMENTAL.store(true, std::sync::atomic::Ordering::Relaxed);
+    }
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1280.0, 800.0])
@@ -6148,4 +6174,26 @@ fn main() -> eframe::Result<()> {
             Ok(Box::new(UoFiddlerApp::default()))
         }),
     )
+}
+
+#[cfg(test)]
+mod tab_tests {
+    use super::*;
+
+    #[test]
+    fn the_paperdoll_tab_needs_the_experimental_flag() {
+        let normal = UoTab::visible_with(false);
+        let experimental = UoTab::visible_with(true);
+        assert!(!normal.contains(&UoTab::Paperdoll));
+        assert!(experimental.contains(&UoTab::Paperdoll));
+        assert_eq!(normal.len() + 1, experimental.len());
+        assert_eq!(experimental.len(), UoTab::ALL.len());
+        // the experimental tab says so in its name; the others do not
+        assert!(UoTab::Paperdoll.name().contains("experimental"));
+        assert!(!UoTab::Items.name().contains("experimental"));
+        // every visible tab belongs to one of the three categories shown in the pills
+        for t in &normal {
+            assert!(TabCategory::ALL.contains(&t.category()));
+        }
+    }
 }

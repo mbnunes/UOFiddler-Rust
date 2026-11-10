@@ -31,7 +31,7 @@ A execução do UOFiddler-Rust original em C# via Wine ou Mono no Linux causa fr
 
 ---
 
-## 📑 Visão Geral Completa das 21 Abas
+## 📑 Visão Geral Completa das 21 Abas (20, mais 1 experimental)
 
 As abas ficam agrupadas em três categorias no topo da janela: **Arte**, **Dados** e **Mundo**.
 
@@ -54,7 +54,7 @@ As abas ficam agrupadas em três categorias no topo da janela: **Arte**, **Dados
 | **🗣️ Speech** | Palavras-chave e gatilhos de comandos de voz (`speech.mul`). |
 | **🎬 AnimData** | Tabela de taxas de quadros e intervalos de animação (`animdata.mul`) com pré-visualização estática do item. |
 | **🎮 GameData** | Inspetor de configurações do cliente 3D Enhanced (`GameData.uop`). Decodifica todas as **79 tabelas de configuração** com modos **📊 Tabela Estruturada** e **📝 Texto Raw**, busca interna por linhas e exportador em lote para CSV. |
-| **🧍 Paperdoll** | Montador de paperdoll: a animação do corpo e o gump de paperdoll lado a lado, com slots de itens estilo mochila e hues (`Equipconv.def`, `gump.def`). |
+| **🧍 Paperdoll** *(experimental)* | Montador de paperdoll: a animação do corpo e o gump de paperdoll lado a lado, com slots de itens estilo mochila e hues (`Equipconv.def`, `gump.def`), qualquer item em qualquer camada e o personagem montado. Ainda está sendo finalizado, por isso fica **escondido a menos que o programa seja iniciado com `--experimental`** (veja [Recursos experimentais](#-recursos-experimentais)). |
 | **🧩 GumpStudio** | Editor visual de gumps: fundos, imagens, itens, texto, HTML/cliloc, botões, checkboxes, radios, entradas de texto e regiões alfa, com a arte do cliente e as **fontes do UO** (`unifont*.mul`, `fonts.mul`). Salva e abre JSON e exporta para **RunUO (C#)**, **Sphere** e **POL**. Seletores visuais para imagens, itens, botões, checkboxes e radios, navegador de resizepics (com lista manual de válidos/inválidos), texto HTML, laços de repetição, favoritos e grupos. |
 | **📡 Comunicação** | Referência estática dos pacotes do cliente (servidor para cliente e cliente para servidor) e dos comandos de layout de gump, com busca e filtros. |
 | **📁 Arquivos** | Navegador de todos os arquivos do cliente: texto/def em tabela, localização IFF, navegador de UOP com entradas e prévia, visão hex, `Multimap.rle` e `facet0N.mul` como imagem, e o **conversor UOP ↔ MUL** (art, gumps, mapas). |
@@ -74,6 +74,21 @@ Abra a aba **Map** e clique em **Edit map** (ou F11). O editor toma o lugar do v
 **Gravação**: as alterações ficam pendentes até você clicar em **Save**, que grava nos arquivos da faceta na pasta do cliente: o terreno em `mapN.mul` / `mapNLegacyMUL.uop` (corrigido no lugar) e os statics em `staidxN.mul` / `staticsN.mul` (reescritos). Antes da primeira gravação de cada arquivo é feita uma cópia `.bak`. **Save as…** grava uma cópia completa dos arquivos da faceta em outra pasta, e as alterações pendentes podem ser exportadas e importadas em JSON. O editor edita o mapa base: patches `mapdif`/`stadif`, se a faceta tiver, continuam valendo por cima no cliente.
 
 > Faça uma cópia da pasta do cliente antes de gravar, e feche o cliente do jogo enquanto grava.
+
+---
+
+## 🧪 Recursos Experimentais
+
+As abas que ainda estão sendo finalizadas ficam escondidas, para que a ferramenta publicada mostre só o que está pronto. Inicie o programa com `--experimental` para exibi-las:
+
+```bash
+uo_gui --experimental                  # Windows: uo_gui.exe --experimental
+./UOFiddler-<versão>-x86_64.AppImage --experimental
+cargo run --release -p uo_gui -- --experimental
+```
+
+- Hoje é a aba **Paperdoll**. Ela aparece marcada como *(experimental)*, e os contadores de abas (20 abas, 21 com a flag) só a incluem com a flag.
+- A flag é mantida quando o [atualizador automático](#atualizações) reinicia o programa. Para scripts e capturas de tela automatizadas, `UOFIDDLER_EXPERIMENTAL=1` faz o mesmo. Todas as variáveis de ambiente estão em [`docs/variaveis-de-ambiente.md`](docs/variaveis-de-ambiente.md).
 
 ---
 
@@ -173,6 +188,7 @@ UOFiddler-Rust/
 ## 📚 Documentação
 
 - [`docs/formats`](docs/formats/README.md): um documento por família de arquivos do cliente (MUL/IDX, mapas, tabelas, animações, contêineres UOP, `.def`, localização…), cobrindo todos os arquivos da pasta de um cliente 7.x.
+- [`docs/variaveis-de-ambiente.md`](docs/variaveis-de-ambiente.md): todas as variáveis de ambiente e argumentos de linha de comando (`--experimental`, `UOFIDDLER_UO_DIR`, as de captura de tela, as do atualizador). Tradução para inglês em [`docs/en/environment-variables.md`](docs/en/environment-variables.md).
 - [`docs/protocol`](docs/protocol/README.md): pacotes, comandos de layout de gump e fluxos (login, gumps, editor de casas, barcos). Tradução para inglês em [`docs/en`](docs/en/formats/README.md).
 
 ---
